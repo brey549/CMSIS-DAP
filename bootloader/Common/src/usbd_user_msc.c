@@ -28,7 +28,7 @@
 #endif
 
 #if defined(TARGET_LPC11U35)	
-#   define WANTED_SIZE_IN_KB  		(64)
+#   define WANTED_SIZE_IN_KB  		(44)
 #elif defined(TARGET_MK20DX)
 #   define WANTED_SIZE_IN_KB        (128)
 #endif

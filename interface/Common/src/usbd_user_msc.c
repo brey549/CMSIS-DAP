@@ -64,6 +64,8 @@
 #   define WANTED_SIZE_IN_KB                        (256)
 #elif defined(DBG_LPC4337)
 #   define WANTED_SIZE_IN_KB                        (1024)
+#elif defined(DBG_STM32F407)
+#   define WANTED_SIZE_IN_KB                        (1024)
 #endif
 
 //------------------------------------------------------------------- CONSTANTS
@@ -565,7 +567,7 @@ static void initDisconnect(uint8_t success) {
         enter_isp();
     }
 #else
-    int autorst = 0;
+    int autorst = 1;
 #endif
     drag_success = success;
     if (autorst)
@@ -573,11 +575,10 @@ static void initDisconnect(uint8_t success) {
     main_blink_msd_led(0);
     init(1);
     isr_evt_set(MSC_TIMEOUT_STOP_EVENT, msc_valid_file_timeout_task_id);
-    if (!autorst)
-    {
-        // event to disconnect the usb
-        main_usb_disconnect_event();
-    }
+
+    // event to disconnect the usb
+    main_usb_disconnect_event();
+    
     semihost_enable();
 }
 
@@ -842,9 +843,9 @@ void usbd_msc_read_sect (uint32_t block, uint8_t *buf, uint32_t num_of_blocks) {
 
 static int programPage() {
     //The timeout task's timer is resetted every 256kB that is flashed.
-    if ((flashPtr >= 0x40000) && ((flashPtr & 0x3ffff) == 0)) {
+//     if ((flashPtr >= 0x40000) && ((flashPtr & 0x3ffff) == 0)) {
         isr_evt_set(MSC_TIMEOUT_RESTART_EVENT, msc_valid_file_timeout_task_id);
-    }
+//     }
 
     // if we have received two sectors, write into flash
     if (!target_flash_program_page(flashPtr + flash_addr_offset, (uint8_t *)usb_buffer, FLASH_PROGRAM_PAGE_SIZE)) {
