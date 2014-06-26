@@ -570,7 +570,7 @@ static void initDisconnect(uint8_t success) {
     int autorst = 1;
 #endif
     drag_success = success;
-    if (autorst)
+    if (autorst && success)
         swd_set_target_state(RESET_RUN);
     main_blink_msd_led(0);
     init(1);

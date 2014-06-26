@@ -67,7 +67,11 @@ static const TARGET_FLASH flash = {
     512        // ram_to_flash_bytes_to_be_written
 };
 
+static uint16_t lastSecNum = -1;
+
 static uint8_t target_flash_init(uint32_t clk) {
+    lastSecNum = -1;
+    
     // Download flash programming algorithm to target and initialise.
     if (!swd_write_memory(flash.algo_start, (uint8_t *)flash.image, flash.algo_size)) {
         return 0;
@@ -128,7 +132,6 @@ static uint16_t GetSecNum (unsigned long adr) {
 
 static uint8_t target_flash_program_page(uint32_t addr, uint8_t * buf, uint32_t size)
 {
-    static uint16_t lastSecNum = -1;
     uint32_t bytes_written = 0;
     
     addr += 0x08000000;
