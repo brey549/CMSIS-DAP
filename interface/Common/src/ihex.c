@@ -8,9 +8,9 @@
 
 
 #define PAGE_SIZE   FLASH_SECTOR_SIZE
-#define LINE_SIZE   64
+#define LINE_SIZE   128
 
-#define IHEX_RECORD_MAX_DATA    32
+#define IHEX_RECORD_MAX_DATA    64
 
 typedef enum {
 	DATA_RECORD = 0x00,

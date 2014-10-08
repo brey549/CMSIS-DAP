@@ -365,7 +365,11 @@ __task void main_task(void) {
 
         if (flags & FLAGS_MAIN_RESET) {
             cdc_led_state = LED_OFF;
+            dap_led_state = LED_OFF;
+            msd_led_state = LED_OFF;
             gpio_set_cdc_led(0);
+            gpio_set_dap_led(0);
+            gpio_set_msd_led(0);
             //usbd_cdc_ser_flush();
             if (send_uID) {
                 // set the target in reset to not receive char on the serial port
@@ -379,7 +383,11 @@ __task void main_task(void) {
             // Reset target
             target_set_state(RESET_RUN);
             cdc_led_state = LED_FLASH;
+            dap_led_state = LED_FLASH;
+            msd_led_state = LED_FLASH;
             gpio_set_cdc_led(1);
+            gpio_set_dap_led(1);
+            gpio_set_msd_led(1);
             button_activated = 0;
         }
 
@@ -551,6 +559,7 @@ __task void main_task(void) {
 }
 
 // Main Program
+
 int main (void) {
   /* Allow the board to do some last initialization before the main task is started */
   board_init();
