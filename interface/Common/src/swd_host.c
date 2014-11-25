@@ -821,6 +821,25 @@ void swd_set_target_reset(uint8_t asserted) {
     }
 }
 
+void swd_reset_nrf51(void)
+{
+    const uint32_t POWER_RESET_ADDR = (0x40000000 + 0x544);
+    
+    if (!swd_init_debug()) {
+        return ;
+    }
+            
+    swd_write_word(POWER_RESET_ADDR, 1);
+    
+    PIN_SWDIO_OUT_ENABLE();
+    PIN_SWDIO_OUT(0);
+    PIN_SWCLK_TCK_CLR();
+    
+    os_dly_wait(1);
+    
+    PIN_SWDIO_OUT(1);
+}
+
 uint8_t swd_set_target_state(TARGET_RESET_STATE state) {
     uint32_t val;
     switch (state) {
@@ -829,6 +848,7 @@ uint8_t swd_set_target_state(TARGET_RESET_STATE state) {
             break;
 
         case RESET_RUN:
+#if !defined(DBG_NRF51822)
 #if defined(SOFT_RESET)
             if (!swd_init_debug()) {
                 return 0;
@@ -841,6 +861,9 @@ uint8_t swd_set_target_state(TARGET_RESET_STATE state) {
 
             swd_set_target_reset(0);
             os_dly_wait(2);
+#endif
+#else
+            swd_reset_nrf51();
 #endif
             break;
 
