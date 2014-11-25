@@ -37,6 +37,10 @@
 #include "read_uid.h"
 #endif
 
+#ifdef ENABLE_PROWER_PROFILING
+#include "power_profiling.h"
+#endif
+
 #if defined(BOARD_LPC1549) || defined(BOARD_LPC11U68) || defined(BOARD_LPC4337) || defined(BOARD_ARCH_BLE)
     #define USE_USB_EJECT_INSERT
 #endif
@@ -204,6 +208,10 @@ __task void serial_process() {
     uint8_t data[SIZE_DATA];
     int32_t len_data = 0;
     void *msg;
+    
+#ifdef ENABLE_PROWER_PROFILING
+    uint8_t mode = 0;
+#endif
 
     while (1) {
 
@@ -226,6 +234,20 @@ __task void serial_process() {
                     {
                         UART_Configuration config;
                         serial_get_configuration(&config);
+#ifdef ENABLE_PROFILLING
+                        if (4000000 > config.Baudrate) {
+                            if (mode) {
+                                mode = 0;
+                                power_profiling_stop();
+                            }
+                        } else {
+                            if (mode == 0) {
+                                mode = 1;
+                                power_profiling_start();
+                            }
+                            break;
+                        }
+#endif
                         uart_set_configuration(&config);
                     }
                     break;
@@ -233,26 +255,42 @@ __task void serial_process() {
                     break;
             }
         }
+#ifdef ENABLE_PROFILLING
+        if (1 == mode) {
+            len_data = USBD_CDC_ACM_DataFree();
+            if (len_data > SIZE_DATA)
+                len_data = SIZE_DATA;
+            if (len_data)
+                len_data = power_profiling_read(data, len_data);
+            if (len_data) {
+                if(USBD_CDC_ACM_DataSend(data , len_data))
+                    main_blink_cdc_led(0);
+            }
+        } else 
+#endif       
+        {   
+            len_data = USBD_CDC_ACM_DataFree();
+            if (len_data > SIZE_DATA)
+                len_data = SIZE_DATA;
+            if (len_data)
+                len_data = uart_read_data(data, len_data);
+            if (len_data) {
+                if(USBD_CDC_ACM_DataSend(data , len_data))
+                    main_blink_cdc_led(0);
+            }
 
-        len_data = USBD_CDC_ACM_DataFree();
-        if (len_data > SIZE_DATA)
-            len_data = SIZE_DATA;
-        if (len_data)
-            len_data = uart_read_data(data, len_data);
-        if (len_data) {
-            if(USBD_CDC_ACM_DataSend(data , len_data))
-                main_blink_cdc_led(0);
+            len_data = uart_write_free();
+            if (len_data > SIZE_DATA)
+                len_data = SIZE_DATA;
+            if (len_data)
+                len_data = USBD_CDC_ACM_DataRead(data, len_data);
+            if (len_data) {
+                if (uart_write_data(data, len_data))
+                    main_blink_cdc_led(0);
+            }
         }
 
-        len_data = uart_write_free();
-        if (len_data > SIZE_DATA)
-            len_data = SIZE_DATA;
-        if (len_data)
-            len_data = USBD_CDC_ACM_DataRead(data, len_data);
-        if (len_data) {
-            if (uart_write_data(data, len_data))
-                main_blink_cdc_led(0);
-        }
+        
     }
 }
 
