@@ -22,6 +22,7 @@
 #include "virtual_fs.h"
 #include "daplink_debug.h"
 #include "version.h"
+#include "target_reset.h"
 
 void usbd_msc_init(void)
 {    
@@ -220,6 +221,11 @@ void usbd_msc_write_sect(uint32_t block, uint8_t *buf, uint32_t num_of_blocks)
                     file_transfer_state.transfer_started = 0;
                     configure_fail_txt(status);
                     main_usb_disconnect_event();
+#ifdef AUTO_RUN
+                    if (TARGET_OK == status) {
+                        target_set_state(RESET_RUN);
+                    }
+#endif
                     return;
                 }
                 // and do the housekeeping
